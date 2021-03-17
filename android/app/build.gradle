@@ -119,6 +119,8 @@ def jscFlavor = 'org.webkit:android-jsc:+'
  */
 def enableHermes = project.ext.react.get("enableHermes", false);
 
+boolean signConfigExists = project.hasProperty("keystoreFile") && project.hasProperty("keystorePassword") && project.hasProperty("keystoreAlias") && project.hasProperty("keystoreAliasPassword")
+
 android {
     dexOptions {
         javaMaxHeapSize "4g"
@@ -155,6 +157,13 @@ android {
             keyPassword 'android'
         }
         release {
+            if (signConfigExists) {
+                MYAPP_RELEASE_STORE_FILE=project.property("keystoreFile")
+                MYAPP_RELEASE_KEY_ALIAS=project.property("keystoreAlias")
+                MYAPP_RELEASE_STORE_PASSWORD=project.property("keystorePassword")
+                MYAPP_RELEASE_KEY_PASSWORD=project.property("keystoreAliasPassword")
+            }
+
             if (project.hasProperty('MYAPP_RELEASE_STORE_FILE')) {
                 storeFile file(MYAPP_RELEASE_STORE_FILE)
                 storePassword MYAPP_RELEASE_STORE_PASSWORD
