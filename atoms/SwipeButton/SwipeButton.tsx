@@ -1,43 +1,40 @@
 import React, { useState, useEffect } from "react";
-import { ActivityIndicator, View, Dimensions } from "react-native";
+import { ActivityIndicator, View, StyleSheet } from "react-native";
+import { Slider } from "@miblanchard/react-native-slider";
 import styled from "styled-components";
-
-import Swipeable from "react-native-swipeable";
-import Ionicons from "react-native-vector-icons/Ionicons";
+import { spaceBadger } from "../../themes/spaceBadger";
 
 import T from "../T";
+import Spacer from "../Spacer";
+import Ionicons from "react-native-vector-icons/Ionicons";
 
 const SWIPEABLE_WIDTH_PERCENT = 78;
 
 const SwipeButtonContainer = styled(View)`
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  border-radius: 32px;
+  overflow: visible;
   width: ${SWIPEABLE_WIDTH_PERCENT}%;
-  height: 64px;
+  height: 70px;
   align-self: center;
-  border-width: 2px;
-  border-color: ${props => props.theme.primary300};
 `;
 
-const SwipeContent = styled(View)<{ activated: boolean }>`
-  height: 64px;
-  padding-right: 10px;
-  align-items: flex-end;
-  justify-content: center;
-
-  background-color: ${props =>
-    props.activated ? props.theme.success500 : props.theme.pending500};
+const SwipeContent = styled(View)`
+  border-radius: 45px;
+  background-color: ${props => props.theme.primary500};
 `;
 
-const SwipeMainContent = styled(View)<{ triggered: boolean }>`
-  height: 64px;
+const SwipeActivity = styled(View)`
   align-items: center;
   justify-content: center;
-  flex-direction: row;
-  background-color: ${props =>
-    props.triggered ? props.theme.success500 : props.theme.primary500};
+  align-self: center;
+`;
+
+const Swiper = styled(Slider)`
+  flex: 1;
+  margin-left: 10;
+  margin-right: 10;
+  align-items: stretch;
+  justify-content: center;
+  overflow: visible;
 `;
 
 type ButtonStates =
@@ -50,76 +47,61 @@ type ButtonStates =
 
 interface Props {
   swipeFn(): void;
-  controlledState?: ButtonStates;
   labelAction: string;
-  labelRelease: string;
-  labelHalfway: string;
 }
 
-const SwipeButton = ({
-  swipeFn,
-  controlledState,
-  labelAction,
-  labelRelease,
-  labelHalfway
-}: Props) => {
-  const [state, setState] = useState<ButtonStates>(controlledState);
-  const [swipeActivated, setSwipeActivated] = useState(false);
+const SwipeButtonAtom = ({ swipeFn, labelAction }: Props) => {
+  const [visible, setVisible] = useState(true);
+  const [sliderValue, setSliderValue] = useState(0);
 
-  useEffect(() => {
-    if (controlledState) setState(controlledState);
-  }, [controlledState]);
+  const sliding = (value: any) => {
+    if (value > 90) {
+      swipeFn();
+      setVisible(false);
+    }
+    setSliderValue(value);
+  };
+
+  const endSlide = () => {
+    setSliderValue(0);
+  };
+
+  const forwardCircle = () => (
+    <Ionicons
+      name="ios-chevron-forward-circle"
+      size={60}
+      color={spaceBadger.fg100}
+    />
+  );
 
   return (
     <SwipeButtonContainer>
-      {state === "pending" ? (
-        <ActivityIndicator size="large" />
-      ) : (
-        <Swipeable
-          leftActionActivationDistance={
-            Dimensions.get("window").width *
-            (SWIPEABLE_WIDTH_PERCENT / 100) *
-            0.7
-          }
-          leftContent={
-            <SwipeContent activated={swipeActivated}>
-              {swipeActivated ? (
-                <T weight="bold" type="inverse">
-                  {labelRelease}
-                </T>
-              ) : (
-                <T weight="bold" type="inverse">
-                  {labelHalfway}
-                </T>
-              )}
-            </SwipeContent>
-          }
-          onLeftActionActivate={() => setSwipeActivated(true)}
-          onLeftActionDeactivate={() => setSwipeActivated(false)}
-          onLeftActionComplete={swipeFn}
-        >
-          <SwipeMainContent triggered={state === "activated"}>
-            <T weight="bold" type="inverse">
-              Swipe{" "}
-            </T>
-            <T
-              weight="bold"
-              type="inverse"
-              style={{
-                paddingTop: 2
-              }}
-            >
-              <Ionicons name="ios-arrow-round-forward" size={25} />
-            </T>
-            <T weight="bold" type="inverse">
-              {" "}
-              {labelAction}
-            </T>
-          </SwipeMainContent>
-        </Swipeable>
+      <ActivityIndicator
+        animating={!visible}
+        hidesWhenStopped={true}
+        size={visible ? 0 : "large"}
+        color="#11a87e"
+      />
+      <T center={true} weight={"bold"} type={"primary"}>
+        {visible ? `Slide ${labelAction}` : ""}
+      </T>
+      <Spacer tiny />
+      {visible && (
+        <SwipeContent>
+          <Swiper
+            minimumValue={0}
+            maximumValue={100}
+            minimumTrackTintColor={spaceBadger.primary900}
+            maximumTrackTintColor={spaceBadger.primary500}
+            renderThumbComponent={forwardCircle}
+            value={sliderValue}
+            onValueChange={value => sliding(value)}
+            onSlidingComplete={() => endSlide()}
+          />
+        </SwipeContent>
       )}
     </SwipeButtonContainer>
   );
 };
 
-export default SwipeButton;
+export default SwipeButtonAtom;
