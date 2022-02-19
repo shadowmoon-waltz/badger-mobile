@@ -40,6 +40,7 @@ buck-out/
 \.buckd/
 *.keystore
 !debug.keystore
+*.jks
 
 # fastlane
 #
@@ -60,6 +61,7 @@ buck-out/
 
 
 **/app/*.keystore
+**/app/*.jks
 test_wallets.md
 
 android/app/release/*
